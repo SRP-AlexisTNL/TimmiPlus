@@ -6,7 +6,7 @@
 // @description  Multi-selection pour le TT is back !
 // @author       AlexTNL
 // @require      https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js
-// @match        https://showroomprive.ilucca.net/timmi-absences
+// @match        https://*.ilucca.net/timmi-absences
 // @icon         https://www.google.com/s2/favicons?sz=64&domain=ilucca.net
 // @updateURL    https://srp-alexistnl.github.io/TimmiPlus/Timmi++.userscript.js
 // @downloadURL  https://srp-alexistnl.github.io/TimmiPlus/Timmi++.userscript.js
