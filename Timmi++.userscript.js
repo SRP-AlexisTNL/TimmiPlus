@@ -2,7 +2,7 @@
 // ==UserScript==
 // @name         Timmi++
 // @namespace    http://tampermonkey.net/
-// @version      0.0.2-alpha
+// @version      0.0.3-alpha
 // @description  Multi-selection pour le TT is back !
 // @author       AlexTNL
 // @require      https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js
@@ -26,9 +26,6 @@
         var iframe = jQuery("#main-iframe").contents()
 
         iframe.find('.advancedOptions-container')[0].innerHTML = `<button id="btn_multiselection" class="mod-notUnderlined u-marginRightSmall link">Activer la multi-selection</button>`+iframe.find('.advancedOptions-container')[0].innerHTML
-        /*if(jQuery("input#application")[0].value == '6' && jQuery("table.calendar").length >= 1){
-            jQuery(".advancedOptions-container")[0].innerHTML += `<button id="btn_multiselection">Activer la multi-selection</button>`
-        }*/
 
         const styles = `.selected {
             border-color: #ff0000 !important;
@@ -39,7 +36,6 @@
         var styleSheet = document.createElement("style")
         styleSheet.innerText = styles;
         document.querySelector('#main-iframe').contentDocument.head.appendChild(styleSheet);
-
 
         jQuery("#main-iframe").contents().find('#btn_multiselection').click(function(){
 
