@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Timmi++
 // @namespace    http://tampermonkey.net/
-// @version      0.0.4-alpha
+// @version      0.0.4
 // @description  Multi-selection pour le TT is back !
 // @author       AlexTNL
 // @require      https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js
