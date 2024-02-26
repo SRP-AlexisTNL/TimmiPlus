@@ -2,7 +2,7 @@
 // ==UserScript==
 // @name         Timmi++
 // @namespace    http://tampermonkey.net/
-// @version      0.0.3-alpha
+// @version      0.0.4-alpha
 // @description  Multi-selection pour le TT is back !
 // @author       AlexTNL
 // @require      https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js
@@ -17,7 +17,7 @@
     'use strict';
     setTimeout(() => {
       addMultiSelection();
-  }, 5000);
+  }, 2000);
 
     var multiSelectionActivate = false
     function addMultiSelection(){
@@ -79,7 +79,7 @@
                         })
 
                     } else {
-                        jQuery('.calendar tr td.clickable').removeClass('selected');
+                        iframe.find('.na').removeClass('selected');
                         jQuerythis.addClass('selected');
                     }
                 }});
