@@ -24,7 +24,7 @@
         //Add button for activate feature
         var iframe = jQuery("#main-iframe").contents()
 
-        iframe.find('.advancedOptions-container')[0].innerHTML = `<button id="btn_multiselection" class="mod-notUnderlined u-marginRightSmall link">Activer la multi-selection</button>`+iframe.find('.advancedOptions-container')[0].innerHTML
+        iframe.find('.advancedOptions-container')[0].insertAdjacentHTML('afterbegin', `<button id="btn_multiselection" class="mod-notUnderlined u-marginRightSmall link">Activer la multi-selection</button>`);
 
         const styles = `.selected {
             border-color: #ff0000 !important;
