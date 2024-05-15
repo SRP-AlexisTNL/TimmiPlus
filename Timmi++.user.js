@@ -1,11 +1,11 @@
 // ==UserScript==
 // @name         Timmi++
 // @namespace    http://tampermonkey.net/
-// @version      0.0.4
+// @version      1.0.0
 // @description  Multi-selection pour le TT is back
 // @author       AlexTNL
-// @require      https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js
-// @match        https://*.ilucca.net/timmi-absences
+// @require      https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js
+// @match        https://*.ilucca.net/Figgo/*
 // @icon         https://www.google.com/s2/favicons?sz=64&domain=ilucca.net
 // @updateURL    https://srp-alexistnl.github.io/TimmiPlus/Timmi++.user.js
 // @downloadURL  https://srp-alexistnl.github.io/TimmiPlus/Timmi++.user.js
@@ -15,45 +15,84 @@
 (function() {
     'use strict';
     setTimeout(() => {
-      addMultiSelection();
-  }, 2000);
+        addMultiSelection();
+    }, 2000);
 
+    var jQuery_3 = $.noConflict(true);
+
+    addMultiSelection();
     var multiSelectionActivate = false
+
     function addMultiSelection(){
         console.log("Activate addMultiSelection")
+        var selectedClass = "selected"
+
+        var keyPress = ""
+        document.addEventListener('keydown', function(event) {
+            console.log(event.key)
+            if (event.key != "Meta") {
+                keyPress = event.key; // "a", "1", "Shift", etc.
+            }
+        });
+
+        document.addEventListener('keyup', function(event) {
+            if (event.key == keyPress) {
+                console.log(event.key)
+                keyPress = ""  // "a", "1", "Shift", etc.
+            }
+        });
         //Add button for activate feature
-        var iframe = jQuery("#main-iframe").contents()
+        jQuery_3('.advancedOptions-container')[0].insertAdjacentHTML('afterbegin', `<button id="btn_multiselection" class="mod-notUnderlined u-marginRightSmall link">Activer la multi-selection</button>`);
 
-        iframe.find('.advancedOptions-container')[0].insertAdjacentHTML('afterbegin', `<button id="btn_multiselection" class="mod-notUnderlined u-marginRightSmall link">Activer la multi-selection</button>`);
+        const styles = `
 
-        const styles = `.selected {
-            border-color: #ff0000 !important;
-            border-style: solid;
-            border-width: 5px;
-        }`
+        @keyframes blink {
+  0% { background-color: #7547D1; }
+  50% { background-color: transparent; }
+  100% { background-color: #7547D1; }
+}
+
+.selectedAM > .AM {
+  animation: blink 1s infinite;
+}
+
+.selectedPM > .PM {
+  animation: blink 1s infinite;
+}
+
+.selected > .AM {
+  animation: blink 1s infinite;
+}
+
+.selected > .PM {
+  animation: blink 1s infinite;
+}
+
+        `
 
         var styleSheet = document.createElement("style")
         styleSheet.innerText = styles;
-        document.querySelector('#main-iframe').contentDocument.head.appendChild(styleSheet);
+        document.head.appendChild(styleSheet);
 
-        jQuery("#main-iframe").contents().find('#btn_multiselection').click(function(){
+        jQuery_3('#btn_multiselection').click(function(){
 
-            var btn = iframe.find("#btn_multiselection")[0]
+            var btn = jQuery_3("#btn_multiselection")[0]
             if (!jQuery(btn).hasClass("alreadyClicked")) {
-                jQuery.each(iframe.find('.na, .fl-day'), function(index, el){el.onclick = undefined}) //Delete timmi default click event
-                jQuery.each(iframe.find('.na'), function(index, el){el.onclick = function (e) {
+                jQuery.each(jQuery_3('.na, .fl-day'), function(index, el){el.onclick = undefined}) //Delete timmi default click event
+                jQuery.each(jQuery_3('.na'), function(index, el){el.onclick = function (e) {
                     e.preventDefault();
 
                     var jQuerythis = jQuery(this);
-                    console.log(jQuerythis.parent().index())
-
+                    console.log(e.key)
                     // Detecting ctrl (windows) / meta (mac) key.
                     if (e.ctrlKey || e.metaKey) {
-                        if (jQuerythis.hasClass('selected')) {
-                            jQuerythis.removeClass('selected');
+                        if (jQuerythis.hasClass(selectedClass)) {
+                            jQuerythis.removeClass(selectedClass);
                         } else {
-                            jQuerythis.addClass('selected')
+                            jQuerythis.addClass(selectedClass)
                         }
+
+
                     }
                     // Detecting shift key
                     else if (e.shiftKey) {
@@ -78,28 +117,37 @@
                         })
 
                     } else {
-                        iframe.find('.na').removeClass('selected');
-                        jQuerythis.addClass('selected');
+                        jQuery_3('.na').removeClass(selectedClass);
+                        jQuerythis.addClass(selectedClass);
                     }
                 }});
-                btn.innerHTML = "Multi-Selection Activée ! (CTRL + Click)"
+                btn.innerHTML = "Mode: \nToute la journée"
                 jQuery(btn).addClass("alreadyClicked")
-                iframe.find('.advancedOptions-container')[0].innerHTML = `<button id="btn_validate_selection" class="button palette-secondary btn_continuer">Valider le télétravail 🏠</button>`+iframe.find('.advancedOptions-container')[0].innerHTML
-                jQuery("#main-iframe").contents().find('#btn_validate_selection').click(function(){validateSelection()})
+                jQuery_3('.advancedOptions-container')[0].innerHTML = `<button id="btn_validate_selection" class="button palette-secondary btn_continuer">Valider le télétravail 🏠</button>`+jQuery_3('.advancedOptions-container')[0].innerHTML
+                jQuery_3('#btn_validate_selection').click(function(){validateSelection()})
 
-            } else {
-                location.reload();
+                jQuery_3('#btn_multiselection').click(function(){
+                    if (selectedClass == "selected") {// Go to AM
+                        selectedClass = "selectedAM"
+                        jQuery_3('#btn_multiselection')[0].innerHTML = "Mode: \nMatin"
+                    } else if (selectedClass == "selectedAM") {// Go to AM
+                        selectedClass = "selectedPM"
+                        jQuery_3('#btn_multiselection')[0].innerHTML = "Mode: \nAprès-Midi"
+                    } else if (selectedClass == "selectedPM") {// Go to AM
+                        selectedClass = "selected"
+                        jQuery_3('#btn_multiselection')[0].innerHTML = "Mode: \nToute la journée"
+                    }
+                })
+
             }
-
         })
     }
 
     function validateSelection(){
 
-        var iframe = jQuery("#main-iframe").contents()
-        $("#btn_validate_selection").prop('disabled', true);
+        jQuery_3("#btn_validate_selection").prop('disabled', true);
         document.body.style.cursor='wait'
-        const selectedDays = jQuery.map(iframe.find(".selected"), function(el){
+        const selectedDays = jQuery.map(jQuery_3(".selected"), function(el){
             var jQuerythis = jQuery(el);
             const day = ("0" + jQuerythis.parent().index()).slice(-2);
             const month = ("0" + jQuerythis.closest('tr').attr("mois")).slice(-2);
@@ -108,8 +156,6 @@
         })
         console.log(selectedDays)
         selectedDays.forEach(function(selectedDay){
-                //const targetUrl = location.href.split("open")[0] + "open/da" //Bof
-            console.log(getLeaveRequestPayload(selectedDay))
             jQuery.ajax({
                 url : "https://showroomprive.ilucca.net/api/v3/leaveRequestFactory?isCreation=true",
                 type : "POST",
@@ -121,6 +167,48 @@
                 }
             })
         })
+
+        const selectedDaysAM = jQuery.map(jQuery_3(".selectedAM"), function(el){
+            var jQuerythis = jQuery(el);
+            const day = ("0" + jQuerythis.parent().index()).slice(-2);
+            const month = ("0" + jQuerythis.closest('tr').attr("mois")).slice(-2);
+            const year = jQuerythis.closest('tr').attr("annee");
+            return `${year}-${month}-${day}T00:00:00`
+        })
+        console.log(selectedDaysAM)
+        selectedDaysAM.forEach(function(selectedDay){
+            jQuery.ajax({
+                url : "https://showroomprive.ilucca.net/api/v3/leaveRequestFactory?isCreation=true",
+                type : "POST",
+                data : JSON.stringify(getLeaveRequestPayloadForAM(selectedDay)),
+                contentType: "application/json; charset=utf-8",
+                async : false,
+                success : function(){
+                    console.log("Ok pour : " + selectedDay)
+                }
+            })
+        })
+
+        const selectedDaysPM = jQuery.map(jQuery_3(".selectedPM"), function(el){
+            var jQuerythis = jQuery(el);
+            const day = ("0" + jQuerythis.parent().index()).slice(-2);
+            const month = ("0" + jQuerythis.closest('tr').attr("mois")).slice(-2);
+            const year = jQuerythis.closest('tr').attr("annee");
+            return `${year}-${month}-${day}T00:00:00`
+        })
+        selectedDaysPM.forEach(function(selectedDay){
+            jQuery.ajax({
+                url : "https://showroomprive.ilucca.net/api/v3/leaveRequestFactory?isCreation=true",
+                type : "POST",
+                data : JSON.stringify(getLeaveRequestPayloadForPM(selectedDay)),
+                contentType: "application/json; charset=utf-8",
+                async : false,
+                success : function(){
+                    console.log("Ok pour : " + selectedDay)
+                }
+            })
+        })
+
         console.log("fini")
         location.reload();
     }
@@ -131,59 +219,59 @@
             "displayAllUnits": false,
             "allUnitAccounts":
             [
-            {
-                "unit": 0,
-                "leaveAccounts":
-                [
                 {
-                    "id": 1123,
-                    "name": "Congés payés 2023",
-                    "isRecurring": true
+                    "unit": 0,
+                    "leaveAccounts":
+                    [
+                        {
+                            "id": 1123,
+                            "name": "Congés payés 2023",
+                            "isRecurring": true
+                        },
+                        {
+                            "id": 1124,
+                            "name": "Congés payés 2024",
+                            "isRecurring": true
+                        },
+                        {
+                            "id": 1224,
+                            "name": "RTT (Forfait jours) 2024",
+                            "isRecurring": true
+                        }
+                    ]
                 },
                 {
-                    "id": 1124,
-                    "name": "Congés payés 2024",
-                    "isRecurring": true
+                    "unit": 3,
+                    "leaveAccounts":
+                    [
+                        {
+                            "id": 8,
+                            "name": "Annonce d’un handicap chez un enfant",
+                            "isRecurring": false
+                        }
+                    ]
                 },
                 {
-                    "id": 1224,
-                    "name": "RTT (Forfait jours) 2024",
-                    "isRecurring": true
+                    "unit": 1,
+                    "leaveAccounts":
+                    [
+                        {
+                            "id": 29,
+                            "name": "Mi temps thérapeutique (Maladie)",
+                            "isRecurring": false
+                        },
+                        {
+                            "id": 59,
+                            "name": "Mi temps thérapeutique (AT)",
+                            "isRecurring": false
+                        },
+                        {
+                            "id": 60,
+                            "name": "Mi temps thérapeutique (AT Trajet)",
+                            "isRecurring": false
+                        }
+                    ]
                 }
-                ]
-            },
-            {
-                "unit": 3,
-                "leaveAccounts":
-                [
-                {
-                    "id": 8,
-                    "name": "Annonce d’un handicap chez un enfant",
-                    "isRecurring": false
-                }
-                ]
-            },
-            {
-                "unit": 1,
-                "leaveAccounts":
-                [
-                {
-                    "id": 29,
-                    "name": "Mi temps thérapeutique (Maladie)",
-                    "isRecurring": false
-                },
-                {
-                    "id": 59,
-                    "name": "Mi temps thérapeutique (AT)",
-                    "isRecurring": false
-                },
-                {
-                    "id": 60,
-                    "name": "Mi temps thérapeutique (AT Trajet)",
-                    "isRecurring": false
-                }
-                ]
-            }
             ],
             "warnings":
             [],
@@ -193,38 +281,38 @@
             [],
             "otherAvailableAccounts":
             [
-            {
-                "leaveAccountId": 34,
-                "leaveAccountName": "Télétravail",
-                "leaveAccountColor": "#7547D1",
-                "autoCredit": true,
-                "categoryType": "PUN",
-                "unit": 0,
-                "duration": 1,
-                "isRemoteWork": false,
-                "i18nLabels":
-                [],
-                "constraint":
                 {
-                    "allowOuterConsumption": 0,
-                    "allowHalfDay": true,
-                    "durationHour": 1,
-                    "stepHour": 0.5,
-                    "entitlementEndDateBalance": null,
-                    "warnings":
-                    [
+                    "leaveAccountId": 34,
+                    "leaveAccountName": "Télétravail",
+                    "leaveAccountColor": "#7547D1",
+                    "autoCredit": true,
+                    "categoryType": "PUN",
+                    "unit": 0,
+                    "duration": 1,
+                    "isRemoteWork": false,
+                    "i18nLabels":
+                    [],
+                    "constraint":
                     {
-                        "ruleId": 49,
-                        "description": "Le plafond est de 2 jours par semaine.",
-                        "error": false,
-                        "info": true,
-                        "concernedUsers":
-                        [],
-                        "accountId": 34
+                        "allowOuterConsumption": 0,
+                        "allowHalfDay": true,
+                        "durationHour": 1,
+                        "stepHour": 0.5,
+                        "entitlementEndDateBalance": null,
+                        "warnings":
+                        [
+                            {
+                                "ruleId": 49,
+                                "description": "Le plafond est de 2 jours par semaine.",
+                                "error": false,
+                                "info": true,
+                                "concernedUsers":
+                                [],
+                                "accountId": 34
+                            }
+                        ]
                     }
-                    ]
                 }
-            }
             ],
             "daysOff":
             {},
@@ -236,6 +324,246 @@
             "startsAM": true, // Pour utiliser un boolean alors que y'a un magnifique datetime après
             "endsAM": false,
             "isHalfDay": false,
+            "unit": 0,
+            "autoCreate": true,
+            "ownerId": window.homeParams.idUser, //Debut Variables utile
+            "endsOn": selectedDay,
+            "startsOn": selectedDay,
+            "balanceEstimateEndsOn": "2024-04-30T00:00:00", // A modifier ???
+        }
+    }
+
+    function getLeaveRequestPayloadForAM(selectedDay) {
+        return { // Debut de variables qui ne servent à rien mais qui sont quand même là
+            "daysUnit": true,
+            "displayAllUnits": false,
+            "allUnitAccounts":
+            [
+                {
+                    "unit": 0,
+                    "leaveAccounts":
+                    [
+                        {
+                            "id": 1123,
+                            "name": "Congés payés 2023",
+                            "isRecurring": true
+                        },
+                        {
+                            "id": 1124,
+                            "name": "Congés payés 2024",
+                            "isRecurring": true
+                        },
+                        {
+                            "id": 1224,
+                            "name": "RTT (Forfait jours) 2024",
+                            "isRecurring": true
+                        }
+                    ]
+                },
+                {
+                    "unit": 3,
+                    "leaveAccounts":
+                    [
+                        {
+                            "id": 8,
+                            "name": "Annonce d’un handicap chez un enfant",
+                            "isRecurring": false
+                        }
+                    ]
+                },
+                {
+                    "unit": 1,
+                    "leaveAccounts":
+                    [
+                        {
+                            "id": 29,
+                            "name": "Mi temps thérapeutique (Maladie)",
+                            "isRecurring": false
+                        },
+                        {
+                            "id": 59,
+                            "name": "Mi temps thérapeutique (AT)",
+                            "isRecurring": false
+                        },
+                        {
+                            "id": 60,
+                            "name": "Mi temps thérapeutique (AT Trajet)",
+                            "isRecurring": false
+                        }
+                    ]
+                }
+            ],
+            "warnings":
+            [],
+            "agreementWarnings":
+            [],
+            "availableAccounts":
+            [],
+            "otherAvailableAccounts":
+            [
+                {
+                    "leaveAccountId": 34,
+                    "leaveAccountName": "Télétravail",
+                    "leaveAccountColor": "#7547D1",
+                    "autoCredit": true,
+                    "categoryType": "PUN",
+                    "unit": 0,
+                    "duration": 1,
+                    "isRemoteWork": false,
+                    "i18nLabels":
+                    [],
+                    "constraint":
+                    {
+                        "allowOuterConsumption": 0,
+                        "allowHalfDay": true,
+                        "durationHour": 1,
+                        "stepHour": 0.5,
+                        "entitlementEndDateBalance": null,
+                        "warnings":
+                        [
+                            {
+                                "ruleId": 49,
+                                "description": "Le plafond est de 2 jours par semaine.",
+                                "error": false,
+                                "info": true,
+                                "concernedUsers":
+                                [],
+                                "accountId": 34
+                            }
+                        ]
+                    }
+                }
+            ],
+            "daysOff":
+            {},
+            "unlimitedDaysOffCalculation": true,
+            "duration": 1,
+            "isValid": true,
+            "areSupportingDocumentsManaged": true,
+            "withCandidate": false,
+            "startsAM": true, // Pour utiliser un boolean alors que y'a un magnifique datetime après
+            "endsAM": true,
+            "isHalfDay": true,
+            "unit": 0,
+            "autoCreate": true,
+            "ownerId": window.homeParams.idUser, //Debut Variables utile
+            "endsOn": selectedDay,
+            "startsOn": selectedDay,
+            "balanceEstimateEndsOn": "2024-04-30T00:00:00", // A modifier ???
+        }
+    }
+
+    function getLeaveRequestPayloadForPM(selectedDay) {
+        return { // Debut de variables qui ne servent à rien mais qui sont quand même là
+            "daysUnit": true,
+            "displayAllUnits": false,
+            "allUnitAccounts":
+            [
+                {
+                    "unit": 0,
+                    "leaveAccounts":
+                    [
+                        {
+                            "id": 1123,
+                            "name": "Congés payés 2023",
+                            "isRecurring": true
+                        },
+                        {
+                            "id": 1124,
+                            "name": "Congés payés 2024",
+                            "isRecurring": true
+                        },
+                        {
+                            "id": 1224,
+                            "name": "RTT (Forfait jours) 2024",
+                            "isRecurring": true
+                        }
+                    ]
+                },
+                {
+                    "unit": 3,
+                    "leaveAccounts":
+                    [
+                        {
+                            "id": 8,
+                            "name": "Annonce d’un handicap chez un enfant",
+                            "isRecurring": false
+                        }
+                    ]
+                },
+                {
+                    "unit": 1,
+                    "leaveAccounts":
+                    [
+                        {
+                            "id": 29,
+                            "name": "Mi temps thérapeutique (Maladie)",
+                            "isRecurring": false
+                        },
+                        {
+                            "id": 59,
+                            "name": "Mi temps thérapeutique (AT)",
+                            "isRecurring": false
+                        },
+                        {
+                            "id": 60,
+                            "name": "Mi temps thérapeutique (AT Trajet)",
+                            "isRecurring": false
+                        }
+                    ]
+                }
+            ],
+            "warnings":
+            [],
+            "agreementWarnings":
+            [],
+            "availableAccounts":
+            [],
+            "otherAvailableAccounts":
+            [
+                {
+                    "leaveAccountId": 34,
+                    "leaveAccountName": "Télétravail",
+                    "leaveAccountColor": "#7547D1",
+                    "autoCredit": true,
+                    "categoryType": "PUN",
+                    "unit": 0,
+                    "duration": 1,
+                    "isRemoteWork": false,
+                    "i18nLabels":
+                    [],
+                    "constraint":
+                    {
+                        "allowOuterConsumption": 0,
+                        "allowHalfDay": true,
+                        "durationHour": 1,
+                        "stepHour": 0.5,
+                        "entitlementEndDateBalance": null,
+                        "warnings":
+                        [
+                            {
+                                "ruleId": 49,
+                                "description": "Le plafond est de 2 jours par semaine.",
+                                "error": false,
+                                "info": true,
+                                "concernedUsers":
+                                [],
+                                "accountId": 34
+                            }
+                        ]
+                    }
+                }
+            ],
+            "daysOff":
+            {},
+            "unlimitedDaysOffCalculation": true,
+            "duration": 1,
+            "isValid": true,
+            "areSupportingDocumentsManaged": true,
+            "withCandidate": false,
+            "startsAM": false, // Pour utiliser un boolean alors que y'a un magnifique datetime après
+            "endsAM": false,
+            "isHalfDay": true,
             "unit": 0,
             "autoCreate": true,
             "ownerId": window.homeParams.idUser, //Debut Variables utile
